@@ -6,8 +6,9 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, recall_score, precision_score
 import warnings
 from sklearn.naive_bayes import GaussianNB
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, export_text, plot_tree
 from sklearn.exceptions import DataConversionWarning
+import seaborn as sns
 warnings.filterwarnings(action='ignore', category=DataConversionWarning)
 import matplotlib
 
