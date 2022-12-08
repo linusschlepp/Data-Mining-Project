@@ -42,10 +42,12 @@ print(100 * accuracy_score(y_test, y_prediction))
 # plt.show()
 
 
-df = data.groupby(by='MonkeyPox').sum()
+
 symptoms = data.iloc[:, 1:-1].columns.values.tolist()
-# Have to be true to be counted
-pos_lst, negative_lst = utils.create_outcome_list(symptoms, df)
+symptoms_df = data.iloc[:,1:]
+symptoms_df = utils.make_df_true(symptoms, symptoms_df)
+
+pos_lst, negative_lst = utils.create_outcome_list(symptoms, symptoms_df)
 df1 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': pos_lst})
 df2 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': negative_lst})
 df1['outcome'] = 'Positive'
@@ -53,4 +55,4 @@ df2['outcome'] = 'Negative'
 res = pd.concat([df1, df2])
 sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome')
 plt.show()
-plt.show()
+
