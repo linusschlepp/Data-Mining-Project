@@ -3,7 +3,7 @@ from main import *
 import constants
 
 test_dict = dict.fromkeys(data[constants.SYSTEMIC_ILLNESS].unique())
-
+#sns.pairplot(data.head(100), hue='MonkeyPox')
 for index in data.index:
     if data['MonkeyPox'][index] == 'Positive':
         test_dict[data[constants.SYSTEMIC_ILLNESS][index]] = int(
@@ -33,18 +33,21 @@ model = GaussianNB()
 model.fit(x_train, y_train)
 y_prediction = model.predict(x_test)
 print(100 * accuracy_score(y_test, y_prediction))
-
-# model_tree = DecisionTreeClassifier(criterion='entropy', splitter='best', min_samples_split=5)
-# model_tree.fit(data_tree, target)
+# x_train, x_test, y_train, y_test = train_test_split(data_tree, target, random_state=ran_stream, test_size=0.01)
+# model_tree = DecisionTreeClassifier(criterion='entropy', splitter='best')
+# model_tree.fit(x_train, y_train)
 # text_representation = export_text(model_tree, feature_names=data_tree.columns.values.tolist())
 # figure = plt.figure(figsize=(10,8))
 # plot_tree(model_tree, feature_names=data_tree.columns, filled=True, rounded=True)
 # plt.show()
 
+series = data['MonkeyPox'].value_counts()
+plt.bar(series.index, series.values)
+plt.show()
 
 
 symptoms = data.iloc[:, 1:-1].columns.values.tolist()
-symptoms_df = data.iloc[:,1:]
+symptoms_df = data.iloc[:, 1:]
 symptoms_df = utils.make_df_true(symptoms, symptoms_df)
 
 pos_lst, negative_lst = utils.create_outcome_list(symptoms, symptoms_df)
@@ -55,4 +58,3 @@ df2['outcome'] = 'Negative'
 res = pd.concat([df1, df2])
 sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome')
 plt.show()
-
