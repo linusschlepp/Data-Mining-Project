@@ -60,16 +60,24 @@ import constants
 # plt.show()
 
 
-symptoms = data.iloc[:, 1:-1].columns.values.tolist()
-symptoms_df = data.iloc[:, 1:]
-symptoms_df = utils.fetch_true_symptoms(symptoms, symptoms_df)
-print(symptoms_df)
+# symptoms = data.iloc[:, 1:-1]
+# symptoms_df = data.iloc[:, 1:]
+# symptoms_df = utils.fetch_true_symptoms(symptoms, symptoms_df)
+# print(symptoms_df)
+#
+# pos_lst, negative_lst = utils.create_outcome_lists(symptoms, symptoms_df)
+# df1 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': pos_lst})
+# df2 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': negative_lst})
+# df1['outcome'] = 'Positive'
+# df2['outcome'] = 'Negative'
+# res = pd.concat([df1, df2])
+# sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
+# plt.show()
 
-pos_lst, negative_lst = utils.create_outcome_lists(symptoms, symptoms_df)
-df1 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': pos_lst})
-df2 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': negative_lst})
-df1['outcome'] = 'Positive'
-df2['outcome'] = 'Negative'
-res = pd.concat([df1, df2])
-sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
-plt.show()
+
+
+simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
+data[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data[constants.SYSTEMIC_ILLNESS]]
+data_tree = data.iloc[:,:-1]
+target = data.iloc[:,-1:]
+utils.create_feature_accuracy_dict(data_tree, target, data.iloc[:, 1:-1].columns.values.tolist())
