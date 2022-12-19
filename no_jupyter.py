@@ -74,10 +74,29 @@ import constants
 # sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
 # plt.show()
 
+# simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
+# data[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data[constants.SYSTEMIC_ILLNESS]]
+# data_tree = data.iloc[:,:-1]
+# target = data.iloc[:,-1:]
+# dict = utils.create_feature_accuracy_dict(data_tree, target, data.iloc[:, 1:-1].columns.values.tolist())
+# print(utils.convert_dict_to_json(dict))
 
+# data_patient_id = data_patient_id.drop_duplicates()
+# data_patient_id[constants.OCCURRENCE] = 1
+# pivot = pd.pivot(data_patient_id, index=constants.PATIENT_ID, columns=constants.MONKEY_POX, values=constants.OCCURRENCE).fillna(0)
+# print(pivot)
+#
+# frequently = apriori(pivot, min_support=0.005, use_colnames=True)
+# rules = association_rules(frequently, metric='lift')
+# print(frequently)
+# rules.sort_values('confidence', ascending=False, inplace=True)
+# print(rules)
 
-simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
-data[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data[constants.SYSTEMIC_ILLNESS]]
-data_tree = data.iloc[:,:-1]
-target = data.iloc[:,-1:]
-utils.create_feature_accuracy_dict(data_tree, target, data.iloc[:, 1:-1].columns.values.tolist())
+symptoms = data.iloc[:, 1:-1].columns.values.tolist()
+symptoms_df = data.iloc[:, 1:]
+symptoms_df = utils.fetch_temp_symptoms(data)
+frequen = apriori(symptoms_df, min_support=0.005)
+rules = association_rules(frequen, metric='lift')
+rules.sort_values('confidence', ascending=False, inplace=True)
+print(rules)
+

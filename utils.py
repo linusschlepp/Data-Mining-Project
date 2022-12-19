@@ -1,6 +1,8 @@
 import pandas as pd
+
+import constants
 from main import train_test_split, GaussianNB, accuracy_score
-import yaml
+import json
 
 
 def create_outcome_lists(symptoms, symptoms_df):
@@ -32,6 +34,39 @@ def fetch_true_symptoms(symptoms, symptoms_df):
     return df
 
 
+def fetch_temp_symptoms(data):
+    """
+    Fetches True-values from given dataframe: symptoms_df
+
+    :param symptoms: List of possible symptoms
+    :param symptoms_df: Dataframe, storing all values of symptoms
+    :return: Dataframe, containing all symptoms, which are true
+    """
+    df = data
+    df = df.query("{}=='Positive'".format(constants.MONKEY_POX))
+    df = df.replace(list(df[constants.SYSTEMIC_ILLNESS].unique()), True)
+    df = df.drop(columns=[constants.MONKEY_POX], axis=1)
+    # lst_case = []
+    # lst_index = []
+    # lst_symptoms = []
+    # case = 1
+    # for row in df.iterrows():
+    #     row= row[1:]
+    #     row_dict = row[0].to_dict()
+    #     for row_element in row_dict:
+    #         if row_dict[row_element] != False:
+    #             lst_case.append(case)
+    #             lst_symptoms.append(row_element)
+    #
+    #     case = case +1
+    #
+    # new_df = pd.DataFrame({ 'Case': lst_case, 'Symptoms': lst_symptoms})
+
+    # return new_df
+    return df
+
+
+
 def create_feature_accuracy_dict(data_tree, target, list_symptoms):
     """
     Calculates accuracy for different feature combination and saves them in dictionary
@@ -55,3 +90,11 @@ def create_feature_accuracy_dict(data_tree, target, list_symptoms):
     return sol_dict
 
 
+def convert_dict_to_json(dict):
+    """
+    Converts given dictionary to json-object.
+
+    :param dict: Dictionary, to be converted
+    :return: Dictionary as json-object
+    """
+    return json.dumps(dict, sort_keys=True, indent=4)
