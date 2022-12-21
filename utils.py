@@ -5,7 +5,7 @@ from main import train_test_split, GaussianNB, accuracy_score
 import json
 
 
-def create_outcome_lists(symptoms, symptoms_df):
+def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame):
     """
     Creates two lists, one containing values, where MonkeyPox is True and the other, where MonkeyPox is False
 
@@ -19,7 +19,7 @@ def create_outcome_lists(symptoms, symptoms_df):
     return pos_list, neg_list
 
 
-def fetch_true_symptoms(symptoms, symptoms_df):
+def fetch_true_symptoms(symptoms: list, symptoms_df: pd.DataFrame) -> pd.DataFrame():
     """
     Fetches True-values from given dataframe: symptoms_df
 
@@ -34,44 +34,27 @@ def fetch_true_symptoms(symptoms, symptoms_df):
     return df
 
 
-def fetch_temp_symptoms(data):
+def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     """
-    Fetches True-values from given dataframe: symptoms_df
+    Cleans data for calculating lift and confidence
 
-    :param symptoms: List of possible symptoms
-    :param symptoms_df: Dataframe, storing all values of symptoms
-    :return: Dataframe, containing all symptoms, which are true
+    :param data: Complete data, containing symptoms as well as information if patient is positive or negative
+    :return: Dataframe, where monkeypox is true, and the corresponding symptoms
     """
     df = data
     df = df.query("{}=='Positive'".format(constants.MONKEY_POX))
+    # Change all systemic illnesses to true
     df = df.replace(list(df[constants.SYSTEMIC_ILLNESS].unique()), True)
     df = df.drop(columns=[constants.MONKEY_POX], axis=1)
-    # lst_case = []
-    # lst_index = []
-    # lst_symptoms = []
-    # case = 1
-    # for row in df.iterrows():
-    #     row= row[1:]
-    #     row_dict = row[0].to_dict()
-    #     for row_element in row_dict:
-    #         if row_dict[row_element] != False:
-    #             lst_case.append(case)
-    #             lst_symptoms.append(row_element)
-    #
-    #     case = case +1
-    #
-    # new_df = pd.DataFrame({ 'Case': lst_case, 'Symptoms': lst_symptoms})
 
-    # return new_df
     return df
 
 
-
-def create_feature_accuracy_dict(data_tree, target, list_symptoms):
+def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame, list_symptoms: list) -> dict:
     """
     Calculates accuracy for different feature combination and saves them in dictionary
 
-    :param data_tree:
+    :param data_tree: Dataframe, on which is operated
     :param target: target data for train_test_split
     :param list_symptoms: List of symptoms/features
     :return: A dictionary, containing different combination of symptoms as key and the corresponding accuracy as value
@@ -79,7 +62,7 @@ def create_feature_accuracy_dict(data_tree, target, list_symptoms):
     sol_dict = {}
     ran_stream = 23
     for symptom in list_symptoms:
-        temp_df = data_tree.drop([symptom], axis= 1)
+        temp_df = data_tree.drop([symptom], axis=1)
         x_train, x_test, y_train, y_test = train_test_split(temp_df, target, random_state=ran_stream)
         model = GaussianNB()
         model.fit(x_train, y_train)
@@ -90,11 +73,11 @@ def create_feature_accuracy_dict(data_tree, target, list_symptoms):
     return sol_dict
 
 
-def convert_dict_to_json(dict):
+def convert_dict_to_json(dict_to_convert: dict):
     """
     Converts given dictionary to json-object.
 
-    :param dict: Dictionary, to be converted
+    :param dict_to_convert: Dictionary, to be converted
     :return: Dictionary as json-object
     """
-    return json.dumps(dict, sort_keys=True, indent=4)
+    return json.dumps(dict_to_convert, sort_keys=True, indent=4)

@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 
 
 data = pd.read_csv('monkey_pox.csv', index_col=0)
-data.rename(columns={'Systemic Illness': constants.SYSTEMIC_ILLNESS, 'Rectal Pain': constants.RECTAL_PAIN, 'Sore Throat': constants.SORE_THROAT, 'Penile Oedema': constants.SORE_THROAT,
+data.rename(columns={'Systemic Illness': constants.SYSTEMIC_ILLNESS, 'Rectal Pain': constants.RECTAL_PAIN, 'Sore Throat': constants.SORE_THROAT, 'Penile Oedema': constants.PENILE_OEDEMA,
                      'Oral Lesions': constants.ORAL_LESIONS, 'Solitary Lesion': constants.SOLITARY_LESION, 'Swollen Tonsils': constants.SWOLLEN_TONSILS, 'HIV Infection': constants.HIV_INFECTION,
                      'Sexually Transmitted Infection': constants.STI }, inplace=True)
 data_patient_id = pd.read_csv('monkey_pox.csv')
