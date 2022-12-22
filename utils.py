@@ -43,11 +43,13 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     """
     df = data
     df = df.query("{}=='Positive'".format(constants.MONKEY_POX))
-    # Change all systemic illnesses to true
-    df = df.replace(list(df[constants.SYSTEMIC_ILLNESS].unique()), True)
-    df = df.drop(columns=[constants.MONKEY_POX], axis=1)
+    df_concat = pd.concat([pd.DataFrame(columns=list(df[constants.SYSTEMIC_ILLNESS].unique())).fillna(False), df])\
+        .fillna(False)
+    for index, col in enumerate(df_concat[constants.SYSTEMIC_ILLNESS]):
+        df_concat[col][index] = True
+    df_concat = df_concat.drop(columns=[constants.MONKEY_POX, constants.SYSTEMIC_ILLNESS], axis=1)
 
-    return df
+    return df_concat
 
 
 def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame, list_symptoms: list) -> dict:
@@ -66,8 +68,8 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame, 
         x_train, x_test, y_train, y_test = train_test_split(temp_df, target, random_state=ran_stream)
         model = GaussianNB()
         model.fit(x_train, y_train)
-        y_predicion = model.predict(x_test)
-        accuracy = (100 * accuracy_score(y_test, y_predicion))
+        y_prediction = model.predict(x_test)
+        accuracy = (100 * accuracy_score(y_test, y_prediction))
         sol_dict[str(temp_df.columns.values.tolist())] = accuracy
 
     return sol_dict

@@ -60,19 +60,34 @@ import constants
 # plt.show()
 
 
-symptoms = data.iloc[:, 1:-1].columns.tolist()
-symptoms_df = data.iloc[:, 1:]
-symptoms_df = utils.fetch_true_symptoms(symptoms, symptoms_df)
-print(symptoms_df)
+# symptoms = data.iloc[:, 1:-1].columns.tolist()
+# symptoms_df = data.iloc[:, 1:]
+# symptoms_df = utils.fetch_true_symptoms(symptoms, symptoms_df)
+# print(symptoms_df)
+#
+# pos_lst, negative_lst = utils.create_outcome_lists(symptoms, symptoms_df)
+# df1 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': pos_lst})
+# df2 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': negative_lst})
+# df1['outcome'] = 'Positive'
+# df2['outcome'] = 'Negative'
+# res = pd.concat([df1, df2])
+# sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
+# plt.show()
 
-pos_lst, negative_lst = utils.create_outcome_lists(symptoms, symptoms_df)
-df1 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': pos_lst})
-df2 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': negative_lst})
-df1['outcome'] = 'Positive'
-df2['outcome'] = 'Negative'
-res = pd.concat([df1, df2])
-sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
-plt.show()
+# simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
+# data[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data[constants.SYSTEMIC_ILLNESS]]
+# data_tree = data.iloc[:,:-1]
+# target = data.iloc[:,-1:]
+# x_train, x_test, y_train, y_test = train_test_split(data_tree, target, test_size=0.80)
+# model_tree = DecisionTreeClassifier(criterion='entropy', splitter='best', min_samples_split=0.10)
+# model_tree.fit(x_train, y_train)
+# # Accuracy checken.
+# y_prediction = model_tree.predict(x_test)
+# print(100 * accuracy_score(y_test, y_prediction))
+# text_representation = export_text(model_tree, feature_names=x_train.columns.values.tolist())
+# figure = plt.figure(figsize=(10,8))
+# plot_tree(model_tree, feature_names=x_train.columns, filled=True, rounded=True)
+# plt.show()
 
 # simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
 # data[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data[constants.SYSTEMIC_ILLNESS]]
@@ -112,3 +127,4 @@ plt.show()
 # res = pd.concat([df1, df2])
 # sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
 # plt.show()
+
