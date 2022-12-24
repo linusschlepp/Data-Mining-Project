@@ -1,6 +1,11 @@
+import operator
+
 import utils
 from main import *
 import constants
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 # test_dict = dict.fromkeys(data[constants.SYSTEMIC_ILLNESS].unique())
 # #sns.pairplot(data.head(100), hue='MonkeyPox')
@@ -89,12 +94,13 @@ import constants
 # plot_tree(model_tree, feature_names=x_train.columns, filled=True, rounded=True)
 # plt.show()
 
-# simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
-# data[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data[constants.SYSTEMIC_ILLNESS]]
-# data_tree = data.iloc[:,:-1]
-# target = data.iloc[:,-1:]
-# dict = utils.create_feature_accuracy_dict(data_tree, target, data.iloc[:, 1:-1].columns.values.tolist())
-# print(utils.convert_dict_to_json(dict))
+simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
+data[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data[constants.SYSTEMIC_ILLNESS]]
+data_tree = data.iloc[:,:-1]
+target = data.iloc[:,-1:]
+temp_dict = utils.create_feature_accuracy_dict(data_tree, target)
+top_items = sorted(temp_dict.items(), key = lambda x: x[1], reverse=True)[:5]
+pp.pprint(top_items)
 
 # data_patient_id = data_patient_id.drop_duplicates()
 # data_patient_id[constants.OCCURRENCE] = 1
@@ -102,6 +108,7 @@ import constants
 # print(pivot)
 #
 # frequently = apriori(pivot, min_support=0.005, use_colnames=True)
+
 # rules = association_rules(frequently, metric='lift')
 # print(frequently)
 # rules.sort_values('confidence', ascending=False, inplace=True)
@@ -127,4 +134,8 @@ import constants
 # res = pd.concat([df1, df2])
 # sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
 # plt.show()
+
+# simple_dict = {'None': 1, 'Fever': 2, 'Swollen Lymph Nodes': 3, 'Muscle Aches and Pain': 4}
+# data_tree[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data_tree[constants.SYSTEMIC_ILLNESS]]
+# utils.check_over_fitting(data_tree, target)
 

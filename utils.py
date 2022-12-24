@@ -1,7 +1,12 @@
+import itertools
+from itertools import combinations
+
 import pandas as pd
+from itertools import combinations
 
 import constants
-from main import train_test_split, GaussianNB, accuracy_score
+from main import train_test_split, GaussianNB, accuracy_score, combinations, DecisionTreeClassifier, \
+    RandomForestClassifier, pyplot, KNeighborsClassifier
 import json
 
 
@@ -43,7 +48,7 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     """
     df = data
     df = df.query("{}=='Positive'".format(constants.MONKEY_POX))
-    df_concat = pd.concat([pd.DataFrame(columns=list(df[constants.SYSTEMIC_ILLNESS].unique())).fillna(False), df])\
+    df_concat = pd.concat([pd.DataFrame(columns=list(df[constants.SYSTEMIC_ILLNESS].unique())).fillna(False), df]) \
         .fillna(False)
     for index, col in enumerate(df_concat[constants.SYSTEMIC_ILLNESS]):
         df_concat[col][index] = True
@@ -52,27 +57,65 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     return df_concat
 
 
-def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame, list_symptoms: list) -> dict:
+def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) -> dict:
     """
-    Calculates accuracy for different feature combination and saves them in dictionary
+    Calculates accuracy for all different feature-combinations and saves them in dictionary
 
     :param data_tree: Dataframe, on which is operated
     :param target: target data for train_test_split
-    :param list_symptoms: List of symptoms/features
     :return: A dictionary, containing different combination of symptoms as key and the corresponding accuracy as value
     """
     sol_dict = {}
     ran_stream = 23
-    for symptom in list_symptoms:
-        temp_df = data_tree.drop([symptom], axis=1)
-        x_train, x_test, y_train, y_test = train_test_split(temp_df, target, random_state=ran_stream)
-        model = GaussianNB()
-        model.fit(x_train, y_train)
-        y_prediction = model.predict(x_test)
-        accuracy = (100 * accuracy_score(y_test, y_prediction))
-        sol_dict[str(temp_df.columns.values.tolist())] = accuracy
+    combinations_col = create_combination_list(data_tree.columns)  # list(itertools.combinations(data_tree.columns, 3))
+    models = [GaussianNB(), DecisionTreeClassifier(criterion='entropy', splitter='best',
+                                                   min_samples_split=5), RandomForestClassifier(n_estimators=100)]
 
+    for combination in combinations_col:
+        temp_data = data_tree.copy()
+        temp_data.drop(columns=temp_data.columns.difference(list(combination)), inplace=True)
+        x_train, x_test, y_train, y_test = train_test_split(temp_data, target, random_state=ran_stream)
+        for model in models:
+            model.fit(x_train, y_train)
+            y_prediction = model.predict(x_test)
+            accuracy = (100 * accuracy_score(y_test, y_prediction))
+            sol_dict[(str(model), str(temp_data.columns.values.tolist()))] = accuracy
+
+    # TODO: Try to solve with dict comprehensiont
+    # sol_dict = {
+    #     outer_k : {
+    #         inner_k: prepare_train_test_data(data_tree, co)
+    #         for inner_k, inner_v in outer_v.items()
+    #     }
+    #     for outer_k, outer_v in outer_dict.items()
+    # }
+    #
     return sol_dict
+
+
+def prepare_train_test_data(data_tree, combination, target):
+    ran_stream = 23
+    temp_data = data_tree.copy()
+    temp_data.drop(columns=temp_data.columns.difference(list(combination)), inplace=True)
+    x_train, x_test, y_train, y_test = train_test_split(temp_data, target, random_state=ran_stream)
+
+    return x_train, x_test, y_train, y_test
+
+
+def create_combination_list(data_columns) -> list:
+    """
+    Creates a list, containing all possible feature-combinations, by concatenating lists with different sizes
+
+    :param data_columns: Columns within feature data
+    :return: List, containing all possible feature-combinations
+    """
+    #TODO: Try to use list comprehension
+    ret_list = []
+    for x in range(2, len(data_columns)):
+        temp_lst = list(itertools.combinations(data_columns, x))
+        ret_list += temp_lst
+
+    return ret_list
 
 
 def convert_dict_to_json(dict_to_convert: dict):
@@ -83,3 +126,33 @@ def convert_dict_to_json(dict_to_convert: dict):
     :return: Dictionary as json-object
     """
     return json.dumps(dict_to_convert, sort_keys=True, indent=4)
+
+
+def check_over_fitting(data: pd.DataFrame, target: pd.DataFrame) -> None:
+    """
+    Checks data for overfitting, by creating a plot, if test-plot is higher than train-plot. Risk of overfitting is high
+
+    :param data: Data to be checked (All features x)
+    :param target: Target-data to be checked (Outcome y)
+    """
+    x_train, x_test, y_train, y_test = train_test_split(data, target, test_size=0.3)
+    values = [i for i in range(2, 21)]
+    print(data.shape, target.shape)
+    train_scores = [fetch_score(x_train, y_train, value) for value in values]
+    test_scores = [fetch_score(x_test, y_test, value) for value in values]
+    pyplot.plot(values, train_scores, '-o', label='Train')
+    pyplot.plot(values, test_scores, '-o', label='Test')
+    pyplot.xlabel('Depth of tree')
+    pyplot.ylabel('Accuracy')
+    pyplot.legend()
+    pyplot.show()
+
+
+def fetch_score(x, y, value):
+    model = DecisionTreeClassifier(max_depth=value)
+    # model = KNeighborsClassifier(n_neighbors=value)
+    model.fit(x, y)
+    yhat = model.predict(x)
+    acc = accuracy_score(y, yhat)
+
+    return acc
