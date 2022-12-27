@@ -1,12 +1,9 @@
 import itertools
-from itertools import combinations
 
-import pandas as pd
-from itertools import combinations
 
 import constants
 from main import train_test_split, GaussianNB, accuracy_score, combinations, DecisionTreeClassifier, \
-    RandomForestClassifier, pyplot, KNeighborsClassifier
+    RandomForestClassifier, pyplot, np,pd
 import json
 
 
@@ -148,11 +145,33 @@ def check_over_fitting(data: pd.DataFrame, target: pd.DataFrame) -> None:
     pyplot.show()
 
 
-def fetch_score(x, y, value):
+def fetch_score(x: pd.DataFrame, y: pd.DataFrame, value: int) -> float:
+    """
+    Used for checking for overfitting.  Calculates accuracy
+
+    :param x: All features
+    :param y: Target data
+    :param value: Value in the range of 1 to 21
+    :return: Calculating accuracy corresponding to model DecisionTreeClassifier and the max_depth of value
+    """
     model = DecisionTreeClassifier(max_depth=value)
-    # model = KNeighborsClassifier(n_neighbors=value)
     model.fit(x, y)
     yhat = model.predict(x)
     acc = accuracy_score(y, yhat)
 
     return acc
+
+
+def prepare_for_tensor(data_x: pd.DataFrame, target: pd.DataFrame):
+    """
+    Prepares feature and target dataset for tensorflow. Meaning all values within those dataframes are changed to float
+
+    :param data_x: All features
+    :param target: Target data
+    :return: Feature and target dataset, where values are changed to float
+    """
+    data_x = np.asarray(data_x).astype('float32')
+    target = target.replace(['Positive', 'Negative'], [True, False])
+    target = np.asarray(target).astype('float32')
+
+    return data_x, target

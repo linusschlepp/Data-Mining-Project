@@ -13,6 +13,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.exceptions import DataConversionWarning
 import seaborn as sns
+from tensorflow import keras
+from keras.models import Sequential
+from keras.layers import Dense
 
 import constants
 
