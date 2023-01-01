@@ -1,5 +1,6 @@
 import operator
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 import utils
@@ -141,49 +142,109 @@ pp = pprint.PrettyPrinter(indent=4)
 # data_tree[constants.SYSTEMIC_ILLNESS] = [simple_dict[item] for item in data_tree[constants.SYSTEMIC_ILLNESS]]
 # utils.check_over_fitting(data_tree, target)
 
-model = Sequential()
-#data_x[constants.SYSTEMIC_ILLNESS] = data_x[constants.SYSTEMIC_ILLNESS].astype('float32')
-# data_x = np.asarray(data_x).astype('float32')
-# target = target.replace(['Positive', 'Negative'], [True, False])
-# target = np.asarray(target).astype('float32')
-data_x, target = utils.prepare_for_tensor(data_x, target)
+# model = Sequential()
+#
+# data_x, target = utils.prepare_for_tensor(data_x, target)
+#
+# # first layer with 12 input-nodes (Dense = connect with all following nodes)
+# model.add(Dense(12, input_dim=data_x.shape[1], activation='relu', name='input'))
+#
+# # 20 hidden nodes in the second layer
+# model.add(Dense(20, activation='relu', name='layer1'))
+#
+# model.add(Dense(30, activation='relu', name='layer2'))
+#
+# model.add(Dense(30, activation='sigmoid', name='layer3'))
+#
+# model.add(Dense(1, activation='sigmoid', name='output'))
+#
+# model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+#
+# x_train, x_test, y_train, y_test = train_test_split(data_x, target)
+#
+# hist = model.fit(x_train, y_train, epochs=100, batch_size=16, verbose=0, validation_data=(x_test, y_test))
+#
+# solution = model.evaluate(x_train, y_train)
+#
+# print("{}: {:.2f}\n{}: {:.2f}".format(model.metrics_names[0], solution[0],
+#                                       model.metrics_names[1], solution[1]))
+#
+# solution = model.evaluate(x_test, y_test)
+# print("{}: {:.2f}\n{}: {:.2f}".format(model.metrics_names[0], solution[0],
+#                                       model.metrics_names[1], solution[1]))
+#
+# y_predict = model.predict(data_x, batch_size=16, verbose=0 / 1 / 2, steps=100)
+#
+# model.summary()
+#
+# evaluation = pd.DataFrame.from_dict(hist.history)  # History Daten vom Typ dict in DataFrame umwandeln
+# fig = plt.figure(figsize=(20, 8), num='Neural Network')
+# img1 = fig.add_subplot(121)
+# img1.plot(evaluation.index, evaluation.iloc[:, 0], color='blue', label='Train-data')
+# img1.plot(evaluation.index, evaluation.iloc[:, 2], color='red', label='Validation-data')
+# img1.legend()
+# img1.set_xlabel('epoch')
+# img1.set_ylabel(model.metrics_names[0])
+# img1.set_title('Neural Network learns: Loss-curve')
+# img2 = fig.add_subplot(122)
+# img2.plot(evaluation.index, evaluation.iloc[:, 1], color='blue', label='Train-data')
+# img2.plot(evaluation.index, evaluation.iloc[:, 3], color='red', label='Validation-data')
+# img2.legend()
+# img2.set_xlabel('epoch')
+# img2.set_ylabel(model.metrics_names[1])
+# img2.set_title('Neural Network learns - accuracy curve')
+# plt.show()
 
 
-# first layer with 12 input-nodes (Dense = connect with all following nodes)
-model.add(Dense(12, input_dim=data_x.shape[1], activation='relu', name='input'))
 
-# 20 hidden nodes in the second layer
-model.add(Dense(20, activation='relu', name='layer1'))
+# plt.scatter(bucket[:, 0], bucket[:, 1], label=names[i])
 
-model.add(Dense(1, activation='sigmoid', name='output'))
+# plt.scatter(list(data_x[constants.SYSTEMIC_ILLNESS]), list(target['MonkeyPox']), c='blue')
+# plt.show()
 
-model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+# utils.check_over_fitting(data_x, target)
 
-x_train, x_test, y_train, y_test = train_test_split(data_x, target)
+# x_train, x_test, y_train, y_test = train_test_split(data_x, target, test_size=0.30)
+# model_tree = RandomForestClassifier(n_estimators=100, max_depth=11)
+# model_tree.fit(x_train, y_train)
+# # Accuracy checken.
+# y_prediction = model_tree.predict(x_test)
+# #print(100 * accuracy_score(y_test, y_prediction))
+# text_representation = export_text(model_tree, feature_names=x_train.columns.values.tolist())
+# figure = plt.figure(figsize=(10,8))
+# plot_tree(model_tree, feature_names=x_train.columns, filled=True, rounded=True)
+# plt.show()
 
 
-hist = model.fit(x_train, y_train, epochs=100, batch_size=16, verbose=0, validation_data=(x_test, y_test))
+# symptom_lst = [data[symptom].value_counts() for symptom in constants.SYMPTOM_LIST]
+# df = pd.DataFrame()
+# df= df.append(symptom_lst).T
+# #series = data[constants.SYMPTOM_LIST].value_counts()
+# plt.bar(df.index, df.values, color=constants.COLOR_PALETTE)
+# plt.show()
 
-solution = model.evaluate(x_train, y_train)
+# symptom_lst = [data[symptom].value_counts() for symptom in constants.SYMPTOM_LIST]
+# df = pd.DataFrame()
+# df= df.append(symptom_lst).T
+# pos_lst, negative_lst = utils.create_outcome_lists(constants.SYMPTOM_LIST, df, False, True)
+# df1 = pd.DataFrame({'Symptoms': constants.SYMPTOM_LIST, 'Number of infections': pos_lst})
+# df2 = pd.DataFrame({'Symptoms': constants.SYMPTOM_LIST, 'Number of infections': negative_lst})
+# df1['outcome'] = 'True'
+# df2['outcome'] = 'False'
+# res = pd.concat([df1, df2])
+# sns.barplot(x='Symptoms', y='Number of infections', hue='outcome', data=res, palette=constants.COLOR_PALETTE)
+# plt.show()
 
-print("{}: {:.2f}\n{}: {:.2f}".format(model.metrics_names[0], solution[0],
-                                      model.metrics_names[1], solution[1]))
+symptoms = data.iloc[:, 1:-1].columns.values.tolist()
+symptoms_df = data.iloc[:, 1:]
+symptoms_df = utils.fetch_true_symptoms(symptoms, symptoms_df)
+print(symptoms_df)
 
-solution = model.evaluate(x_test, y_test)
-print("{}: {:.2f}\n{}: {:.2f}".format(model.metrics_names[0], solution[0],
-                                      model.metrics_names[1], solution[1]))
-
-y_predict = model.predict(data_x, batch_size=16, verbose=0 / 1 / 2, steps=100)
-
-model.summary()
-
-auswertung = pd.DataFrame.from_dict(hist.history)
-# Fit Daten in DataFrame umwandeln
-fig = plt.figure(figsize=(20, 8), num="Neuronal Network")
-bild1 = fig.add_subplot(121)
-bild1.plot(auswertung.index, auswertung.iloc[:, 2], color='blue')
-bild1.plot(auswertung.index, auswertung.iloc[:, 0], color='red')
-bild1.legend(['Training', 'Validation'])
-bild1.set_xlabel('epoch')
-bild1.set_ylabel(model.metrics_names[0])
+pos_lst, negative_lst = utils.create_outcome_lists(symptoms, symptoms_df, 'Negative', 'Positive')
+df1 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': pos_lst})
+df2 = pd.DataFrame({'Symptoms': symptoms, 'Number of infections': negative_lst})
+df1['outcome'] = 'Positive'
+df2['outcome'] = 'Negative'
+res = pd.concat([df1, df2])
+sns.barplot(x='Symptoms', y='Number of infections', data=res, hue='outcome', palette=constants.COLOR_PALETTE)
 plt.show()

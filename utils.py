@@ -1,13 +1,12 @@
 import itertools
 
-
 import constants
 from main import train_test_split, GaussianNB, accuracy_score, combinations, DecisionTreeClassifier, \
-    RandomForestClassifier, pyplot, np,pd
+    RandomForestClassifier, pyplot, np, pd
 import json
 
 
-def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame):
+def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame, neg_value, pos_value):
     """
     Creates two lists, one containing values, where MonkeyPox is True and the other, where MonkeyPox is False
 
@@ -15,8 +14,8 @@ def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame):
     :param symptoms_df: Dataframe where the specific symptom is True and MonkeyPox is Positive
     :return: Two lists, one list contains the positive values and the other the negative ones
     """
-    pos_list = [symptoms_df[symptom]['Positive'] for symptom in symptoms]
-    neg_list = [symptoms_df[symptom]['Negative'] for symptom in symptoms]
+    pos_list = [symptoms_df[symptom][neg_value] for symptom in symptoms]
+    neg_list = [symptoms_df[symptom][pos_value] for symptom in symptoms]
 
     return pos_list, neg_list
 
@@ -106,7 +105,7 @@ def create_combination_list(data_columns) -> list:
     :param data_columns: Columns within feature data
     :return: List, containing all possible feature-combinations
     """
-    #TODO: Try to use list comprehension
+    # TODO: Try to use list comprehension
     ret_list = []
     for x in range(2, len(data_columns)):
         temp_lst = list(itertools.combinations(data_columns, x))
@@ -127,22 +126,34 @@ def convert_dict_to_json(dict_to_convert: dict):
 
 def check_over_fitting(data: pd.DataFrame, target: pd.DataFrame) -> None:
     """
-    Checks data for overfitting, by creating a plot, if test-plot is higher than train-plot. Risk of overfitting is high
+    Checks data for overfitting, by creating a plot. If train-plot is higher than test-plot, risk of overfitting could exist within data.
 
     :param data: Data to be checked (All features x)
     :param target: Target-data to be checked (Outcome y)
     """
-    x_train, x_test, y_train, y_test = train_test_split(data, target, test_size=0.3)
-    values = [i for i in range(2, 21)]
-    print(data.shape, target.shape)
+   # df_for_train_test, target_for_train_test, df_normal, target_normal = prepare_data(data, target)
+    x_train, x_test, y_train, y_test = train_test_split(data, target, test_size=0.5)
+    #x_train, x_test, y_train, y_test = train_test_split(df_for_train_test, target_for_train_test, test_size=0.5)
+    values = [i for i in range(2, 32)]
     train_scores = [fetch_score(x_train, y_train, value) for value in values]
     test_scores = [fetch_score(x_test, y_test, value) for value in values]
+    #real_scores = [fetch_score(df_normal, target_normal, value) for value in values]
     pyplot.plot(values, train_scores, '-o', label='Train')
     pyplot.plot(values, test_scores, '-o', label='Test')
     pyplot.xlabel('Depth of tree')
     pyplot.ylabel('Accuracy')
     pyplot.legend()
     pyplot.show()
+
+
+def prepare_data(data_x, target):
+    half_size = int(data_x.shape[0] / 2)
+    df_for_train_test = data_x.iloc[:half_size]
+    target_for_train_test = target.iloc[:half_size]
+    df_normal = data_x.iloc[-half_size:]
+    target_normal = target.iloc[-half_size:]
+
+    return df_for_train_test, target_for_train_test, df_normal, target_normal
 
 
 def fetch_score(x: pd.DataFrame, y: pd.DataFrame, value: int) -> float:
@@ -154,7 +165,7 @@ def fetch_score(x: pd.DataFrame, y: pd.DataFrame, value: int) -> float:
     :param value: Value in the range of 1 to 21
     :return: Calculating accuracy corresponding to model DecisionTreeClassifier and the max_depth of value
     """
-    model = DecisionTreeClassifier(max_depth=value)
+    model = RandomForestClassifier(max_depth=value)
     model.fit(x, y)
     yhat = model.predict(x)
     acc = accuracy_score(y, yhat)
