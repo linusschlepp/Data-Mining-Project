@@ -1,18 +1,20 @@
 import itertools
 
 import constants
-from main import train_test_split, GaussianNB, accuracy_score, combinations, DecisionTreeClassifier, \
+from main import train_test_split, GaussianNB, accuracy_score, DecisionTreeClassifier, \
     RandomForestClassifier, pyplot, np, pd
-import json
 
 
-def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame, neg_value, pos_value):
+def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame, neg_value: [bool, str], pos_value: [bool, str]) \
+        -> [list, list]:
     """
     Creates two lists, one containing values, where MonkeyPox is True and the other, where MonkeyPox is False
 
     :param symptoms: List of possible symptoms
     :param symptoms_df: Dataframe where the specific symptom is True and MonkeyPox is Positive
-    :return: Two lists, one list contains the positive values and the other the negative ones
+    :param neg_value: Negative value to be searched in dataframe False/ Negative
+    :param pos_value: Positive value to be searched in dataframe True/ Positive
+    :return: Two lists, one containing the positive values and the other the negative values
     """
     pos_list = [symptoms_df[symptom][neg_value] for symptom in symptoms]
     neg_list = [symptoms_df[symptom][pos_value] for symptom in symptoms]
@@ -57,12 +59,11 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) 
     """
     Calculates accuracy for all different feature-combinations and saves them in dictionary
 
-    :param data_tree: Dataframe, on which is operated
-    :param target: target data for train_test_split
-    :return: A dictionary, containing different combination of symptoms as key and the corresponding accuracy as value
+    :param data_tree: Dataframe, on which is operated (All features x)
+    :param target: Target data for train_test_split (Outcome y)
+    :return: A dictionary, containing different combination of symptoms as key and the corresponding accuracies as value
     """
     sol_dict = {}
-    ran_stream = 23
     combinations_col = create_combination_list(data_tree.columns)  # list(itertools.combinations(data_tree.columns, 3))
     models = [GaussianNB(), DecisionTreeClassifier(criterion='entropy', splitter='best',
                                                    min_samples_split=5), RandomForestClassifier(n_estimators=100)]
@@ -70,10 +71,10 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) 
     for combination in combinations_col:
         temp_data = data_tree.copy()
         temp_data.drop(columns=temp_data.columns.difference(list(combination)), inplace=True)
-        x_train, x_test, y_train, y_test = train_test_split(temp_data, target, random_state=ran_stream)
+        X_train, X_test, y_train, y_test = train_test_split(temp_data, target)
         for model in models:
-            model.fit(x_train, y_train)
-            y_prediction = model.predict(x_test)
+            model.fit(X_train, y_train)
+            y_prediction = model.predict(X_test)
             accuracy = (100 * accuracy_score(y_test, y_prediction))
             sol_dict[(str(model), str(temp_data.columns.values.tolist()))] = accuracy
 
@@ -89,13 +90,20 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) 
     return sol_dict
 
 
-def prepare_train_test_data(data_tree, combination, target):
-    ran_stream = 23
-    temp_data = data_tree.copy()
-    temp_data.drop(columns=temp_data.columns.difference(list(combination)), inplace=True)
-    x_train, x_test, y_train, y_test = train_test_split(temp_data, target, random_state=ran_stream)
-
-    return x_train, x_test, y_train, y_test
+# def prepare_train_test_data(data_tree: pd.DataFrame, combination, target: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+#     """
+#     Prepares the train and test data for given feature and target dataframe as well as specific feature combination
+#
+#     :param data_tree: Dataframe, on which is operated (All features x)
+#     :param combination: Combinations of features, to be checked
+#     :param target: Target data for train_test_split (Outcome y)
+#     :return: train_test_split for given feature combination
+#     """
+#
+#     temp_data = data_tree.copy()
+#     temp_data.drop(columns=temp_data.columns.difference(list(combination)), inplace=True)
+#
+#     return train_test_split(temp_data, target)
 
 
 def create_combination_list(data_columns) -> list:
@@ -114,30 +122,18 @@ def create_combination_list(data_columns) -> list:
     return ret_list
 
 
-def convert_dict_to_json(dict_to_convert: dict):
-    """
-    Converts given dictionary to json-object.
-
-    :param dict_to_convert: Dictionary, to be converted
-    :return: Dictionary as json-object
-    """
-    return json.dumps(dict_to_convert, sort_keys=True, indent=4)
-
-
 def check_over_fitting(data: pd.DataFrame, target: pd.DataFrame) -> None:
     """
-    Checks data for overfitting, by creating a plot. If train-plot is higher than test-plot, risk of overfitting could exist within data.
+    Checks data for overfitting, by creating a plot. If train-plot is higher than test-plot, risk of overfitting
+    could exist within data.
 
     :param data: Data to be checked (All features x)
     :param target: Target-data to be checked (Outcome y)
     """
-   # df_for_train_test, target_for_train_test, df_normal, target_normal = prepare_data(data, target)
     x_train, x_test, y_train, y_test = train_test_split(data, target, test_size=0.5)
-    #x_train, x_test, y_train, y_test = train_test_split(df_for_train_test, target_for_train_test, test_size=0.5)
     values = [i for i in range(2, 32)]
     train_scores = [fetch_score(x_train, y_train, value) for value in values]
     test_scores = [fetch_score(x_test, y_test, value) for value in values]
-    #real_scores = [fetch_score(df_normal, target_normal, value) for value in values]
     pyplot.plot(values, train_scores, '-o', label='Train')
     pyplot.plot(values, test_scores, '-o', label='Test')
     pyplot.xlabel('Depth of tree')
@@ -146,22 +142,12 @@ def check_over_fitting(data: pd.DataFrame, target: pd.DataFrame) -> None:
     pyplot.show()
 
 
-def prepare_data(data_x, target):
-    half_size = int(data_x.shape[0] / 2)
-    df_for_train_test = data_x.iloc[:half_size]
-    target_for_train_test = target.iloc[:half_size]
-    df_normal = data_x.iloc[-half_size:]
-    target_normal = target.iloc[-half_size:]
-
-    return df_for_train_test, target_for_train_test, df_normal, target_normal
-
-
 def fetch_score(x: pd.DataFrame, y: pd.DataFrame, value: int) -> float:
     """
     Used for checking for overfitting.  Calculates accuracy
 
-    :param x: All features
-    :param y: Target data
+    :param x: Data to be checked (All features x)
+    :param y: Target data to be checked (Outcome y)
     :param value: Value in the range of 1 to 21
     :return: Calculating accuracy corresponding to model DecisionTreeClassifier and the max_depth of value
     """
@@ -173,12 +159,13 @@ def fetch_score(x: pd.DataFrame, y: pd.DataFrame, value: int) -> float:
     return acc
 
 
-def prepare_for_tensor(data_x: pd.DataFrame, target: pd.DataFrame):
+def prepare_for_tensor(data_x: pd.DataFrame, target: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame]:
     """
-    Prepares feature and target dataset for tensorflow. Meaning all values within those dataframes are changed to float
+    Prepares feature and target dataset for tensorflow. All values within those dataframes are changed to the
+    corresponding float values.
 
-    :param data_x: All features
-    :param target: Target data
+    :param data_x: Data to be checked (All features x)
+    :param target: Target data to be checked (Outcome y)
     :return: Feature and target dataset, where values are changed to float
     """
     data_x = np.asarray(data_x).astype('float32')
