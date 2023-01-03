@@ -2,7 +2,7 @@ import itertools
 
 import constants
 from main import train_test_split, GaussianNB, accuracy_score, DecisionTreeClassifier, \
-    RandomForestClassifier, pyplot, np, pd
+    RandomForestClassifier, plt, np, pd, sns
 
 
 def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame, neg_value: [bool, str], pos_value: [bool, str]) \
@@ -32,7 +32,8 @@ def fetch_true_symptoms(symptoms: list, symptoms_df: pd.DataFrame) -> pd.DataFra
     """
     df = pd.DataFrame({})
     for symptom in symptoms:
-        df[symptom] = symptoms_df.loc[lambda x: x[symptom] == True].groupby(by='MonkeyPox').sum()[symptom].to_dict()
+        df[symptom] = symptoms_df.loc[lambda x: x[symptom] == True].groupby(by=constants.MONKEY_POX).sum()[
+            symptom].to_dict()
 
     return df
 
@@ -45,7 +46,7 @@ def clean_data(data: pd.DataFrame) -> pd.DataFrame:
     :return: Dataframe, where monkeypox is true, and the corresponding symptoms
     """
     df = data
-    df = df.query("{}=='Positive'".format(constants.MONKEY_POX))
+    df = df.query("{}=='{}'".format(constants.MONKEY_POX, constants.POSITIVE))
     df_concat = pd.concat([pd.DataFrame(columns=list(df[constants.SYSTEMIC_ILLNESS].unique())).fillna(False), df]) \
         .fillna(False)
     for index, col in enumerate(df_concat[constants.SYSTEMIC_ILLNESS]):
@@ -70,13 +71,16 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) 
 
     for combination in combinations_col:
         temp_data = data_tree.copy()
+        # Drop all columns, which are not contained within combination
         temp_data.drop(columns=temp_data.columns.difference(list(combination)), inplace=True)
         X_train, X_test, y_train, y_test = train_test_split(temp_data, target)
         for model in models:
             model.fit(X_train, y_train)
             y_prediction = model.predict(X_test)
             accuracy = (100 * accuracy_score(y_test, y_prediction))
-            sol_dict[(str(model), str(temp_data.columns.values.tolist()))] = accuracy
+            r2_test = model.score(X_test, y_test)
+            r2_train = model.score(X_train, y_train)
+            sol_dict[(str(model), str(temp_data.columns.values.tolist()))] = (accuracy, r2_test, r2_train)
 
     # TODO: Try to solve with dict comprehensiont
     # sol_dict = {
@@ -90,22 +94,6 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) 
     return sol_dict
 
 
-# def prepare_train_test_data(data_tree: pd.DataFrame, combination, target: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-#     """
-#     Prepares the train and test data for given feature and target dataframe as well as specific feature combination
-#
-#     :param data_tree: Dataframe, on which is operated (All features x)
-#     :param combination: Combinations of features, to be checked
-#     :param target: Target data for train_test_split (Outcome y)
-#     :return: train_test_split for given feature combination
-#     """
-#
-#     temp_data = data_tree.copy()
-#     temp_data.drop(columns=temp_data.columns.difference(list(combination)), inplace=True)
-#
-#     return train_test_split(temp_data, target)
-
-
 def create_combination_list(data_columns) -> list:
     """
     Creates a list, containing all possible feature-combinations, by concatenating lists with different sizes
@@ -116,8 +104,7 @@ def create_combination_list(data_columns) -> list:
     # TODO: Try to use list comprehension
     ret_list = []
     for x in range(2, len(data_columns)):
-        temp_lst = list(itertools.combinations(data_columns, x))
-        ret_list += temp_lst
+        ret_list += list(itertools.combinations(data_columns, x))
 
     return ret_list
 
@@ -131,15 +118,37 @@ def check_over_fitting(data: pd.DataFrame, target: pd.DataFrame) -> None:
     :param target: Target-data to be checked (Outcome y)
     """
     x_train, x_test, y_train, y_test = train_test_split(data, target, test_size=0.5)
-    values = [i for i in range(2, 32)]
+    values = [i for i in range(2, 21)]
     train_scores = [fetch_score(x_train, y_train, value) for value in values]
     test_scores = [fetch_score(x_test, y_test, value) for value in values]
-    pyplot.plot(values, train_scores, '-o', label='Train')
-    pyplot.plot(values, test_scores, '-o', label='Test')
-    pyplot.xlabel('Depth of tree')
-    pyplot.ylabel('Accuracy')
-    pyplot.legend()
-    pyplot.show()
+    plt.plot(values, train_scores, '-o', label='Train', color=constants.FIRST_COLOR)
+    plt.plot(values, test_scores, '-o', label='Test', color=constants.SECOND_COLOR)
+    plt.xlabel('Depth of tree')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.show()
+
+
+def plot_data(symptoms: list, pos_lst: list, neg_lst: list, x_text: str, y_text: str, legend: str, text_legend_1: [bool, str], text_legend_2: [bool, str] ) -> None:
+    """
+    Plots positive and negative features as barplot.
+
+    :param symptoms: List of symptoms as str
+    :param pos_lst: List of positive symptoms
+    :param neg_lst: List of negative symptoms
+    :param x_text: Text of the x-axis
+    :param y_text: Text of the y-axis
+    :param text_legend_1: Text of legend value 1
+    :param text_legend_2: Text of legend value 2
+    :param legend: Caption of the legend of the plot
+    """
+    df1 = pd.DataFrame({x_text: symptoms, y_text: pos_lst})
+    df2 = pd.DataFrame({x_text: symptoms, y_text: neg_lst})
+    df1[legend] = text_legend_1
+    df2[legend] = text_legend_2
+    res = pd.concat([df1, df2])
+    sns.barplot(x=x_text, y=y_text, data=res, hue=legend, palette=constants.COLOR_PALETTE)
+    plt.show()
 
 
 def fetch_score(x: pd.DataFrame, y: pd.DataFrame, value: int) -> float:
@@ -169,7 +178,7 @@ def prepare_for_tensor(data_x: pd.DataFrame, target: pd.DataFrame) -> [pd.DataFr
     :return: Feature and target dataset, where values are changed to float
     """
     data_x = np.asarray(data_x).astype('float32')
-    target = target.replace(['Positive', 'Negative'], [True, False])
+    target = target.replace([constants.POSITIVE, constants.NEGATIVE], [True, False])
     target = np.asarray(target).astype('float32')
 
     return data_x, target
