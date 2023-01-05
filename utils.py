@@ -1,8 +1,10 @@
 import itertools
 
+import keras
+
 import constants
 from main import train_test_split, GaussianNB, accuracy_score, DecisionTreeClassifier, \
-    RandomForestClassifier, plt, np, pd, sns
+    RandomForestClassifier, plt, np, pd, sns, r2_score
 
 
 def create_outcome_lists(symptoms: list, symptoms_df: pd.DataFrame, neg_value: [bool, str], pos_value: [bool, str]) \
@@ -65,7 +67,7 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) 
     :return: A dictionary, containing different combination of symptoms as key and the corresponding accuracies as value
     """
     sol_dict = {}
-    combinations_col = create_combination_list(data_tree.columns)  # list(itertools.combinations(data_tree.columns, 3))
+    combinations_col = create_combination_list(len(data_tree.columns))
     models = [GaussianNB(), DecisionTreeClassifier(criterion='entropy', splitter='best',
                                                    min_samples_split=5), RandomForestClassifier(n_estimators=100)]
 
@@ -94,17 +96,17 @@ def create_feature_accuracy_dict(data_tree: pd.DataFrame, target: pd.DataFrame) 
     return sol_dict
 
 
-def create_combination_list(data_columns) -> list:
+def create_combination_list(am_columns: int) -> list:
     """
     Creates a list, containing all possible feature-combinations, by concatenating lists with different sizes
 
-    :param data_columns: Columns within feature data
+    :param am_columns: Amount of columns in dataframe
     :return: List, containing all possible feature-combinations
     """
     # TODO: Try to use list comprehension
     ret_list = []
-    for x in range(2, len(data_columns)):
-        ret_list += list(itertools.combinations(data_columns, x))
+    for x in range(2, am_columns):
+        ret_list += list(itertools.combinations(am_columns, x))
 
     return ret_list
 
@@ -129,7 +131,8 @@ def check_over_fitting(data: pd.DataFrame, target: pd.DataFrame) -> None:
     plt.show()
 
 
-def plot_data(symptoms: list, pos_lst: list, neg_lst: list, x_text: str, y_text: str, legend: str, text_legend_1: [bool, str], text_legend_2: [bool, str] ) -> None:
+def plot_data(symptoms: list, pos_lst: list, neg_lst: list, x_text: str, y_text: str, legend: str,
+              text_legend_1: [bool, str], text_legend_2: [bool, str]) -> None:
     """
     Plots positive and negative features as barplot.
 
@@ -182,3 +185,20 @@ def prepare_for_tensor(data_x: pd.DataFrame, target: pd.DataFrame) -> [pd.DataFr
     target = np.asarray(target).astype('float32')
 
     return data_x, target
+
+
+def eval_data(X: pd.DataFrame, y: pd.DataFrame, model: keras.models.Sequential, calculate_r2: bool = False) -> None:
+    """
+    Evaluates train- and test, corresponding to given model
+
+    :param X:  to be checked (All features x)
+    :param y: Target data to be checked (Outcome y)
+    :param model: Neuronal Network Model, on which is to be operated
+    :param calculate_r2: bool-flag if r² has to be calculated for the given data, is per default False
+    """
+    solution = model.evaluate(X, y, verbose=0)
+    y_prediction = model.predict(X)
+    print('{}: {:.2f}\n{}: {:.2f}'.format(model.metrics_names[0], solution[0],
+                                          model.metrics_names[1], solution[1]))
+    if calculate_r2:
+        print('R²: {:.2f}'.format(r2_score(y, y_prediction)))

@@ -14,6 +14,7 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree, export_graphviz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
+from sklearn.metrics import r2_score
 from sklearn.exceptions import DataConversionWarning
 import seaborn as sns
 from tensorflow import keras

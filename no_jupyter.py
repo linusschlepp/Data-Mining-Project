@@ -235,5 +235,18 @@ pp = pprint.PrettyPrinter(indent=4)
 # sns.barplot(x='Symptoms', y='Number of infections', hue='outcome', data=res, palette=constants.COLOR_PALETTE)
 # plt.show()
 
-symptoms_df = utils.clean_data(data)
-symptoms_df
+# symptoms_df = utils.clean_data(data)
+# print(symptoms_df)
+
+
+
+X_train, X_test, y_train, y_test = train_test_split(X_data, target, train_size=0.05)
+new_df = pd.concat([X_train, y_train])
+try:
+    sns.pairplot(new_df)
+except:
+    pass
+plt.show()
+#sns.pairplot(new_df, hue=constants.MONKEY_POX)
+#pd.plotting.scatter_matrix(new_df, figsize=(15,15), c=y_train.values, marker='o', s=30, alpha=0.8)
+#plt.show()
