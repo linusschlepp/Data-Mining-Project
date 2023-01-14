@@ -1,3 +1,7 @@
+# File contains all imports, used in this project
+# author: Linus Schlepp
+# Data Mining Projekt
+
 import pandas as pd
 import numpy as np
 import matplotlib
